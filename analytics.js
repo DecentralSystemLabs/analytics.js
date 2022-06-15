@@ -102,7 +102,7 @@
 /**
  * Analytics.js
  *
- * (C) 2015 Segment.io Inc.
+ * (C) 2015 W3A.io Inc.
  */
 
 var analytics = require('segmentio/analytics.js-core');
@@ -141,7 +141,7 @@ each(Integrations, function(name, Integration) {
 /**
  * Analytics.js
  *
- * (C) 2013 Segment.io Inc.
+ * (C) 2013 W3A.io Inc.
  */
 
 var Analytics = require('./analytics');
@@ -283,6 +283,11 @@ Analytics.prototype.addIntegration = function(Integration) {
 Analytics.prototype.init = Analytics.prototype.initialize = function(settings, options) {
   settings = settings || {};
   options = options || {};
+
+  //handle key generation from backend and giving on our platform
+  if(settings['W3A']){
+    console.log(settings['W3A'].api_key)
+  }
 
   this._options(options);
   this._readied = false;
@@ -11908,7 +11913,7 @@ Extole.prototype._registerConversion = function(conversionTag) {
 };
 
 /**
- * Formats details from a Segment track event into a data format Extole can
+ * Formats details from a W3A track event into a data format Extole can
  * accept.
  *
  * @api private
@@ -13974,7 +13979,7 @@ GoSquared.prototype.identify = function(identify) {
     'company_industry'
   ];
 
-  // Segment allows traits to all be in a flat object
+  // W3A allows traits to all be in a flat object
   // GoSquared requires all custom properties to be in a `custom` object,
 
   // select all special keys
@@ -16514,7 +16519,7 @@ Olark.prototype.attachListeners = function() {
   });
 
   // Callback accepts `event`
-  // TODO: We might eventually send information about the event through Segment
+  // TODO: We might eventually send information about the event through W3A
   api('chat.onMessageToOperator', function() {
     self.analytics.track(
       'Live Chat Message Sent',
@@ -16524,7 +16529,7 @@ Olark.prototype.attachListeners = function() {
   });
 
   // Callback accepts `event`
-  // TODO: We might eventually send information about the event through Segment
+  // TODO: We might eventually send information about the event through W3A
   api('chat.onMessageToVisitor', function() {
     self.analytics.track(
       'Live Chat Message Received',
@@ -16662,7 +16667,7 @@ Optimizely.prototype.page = function(page) {
 };
 
 /**
- * Send experiment data as track events to Segment
+ * Send experiment data as track events to W3A
  *
  * https://www.optimizely.com/docs/api#data-object
  *
@@ -17922,11 +17927,11 @@ var cookieOptions = {
 };
 
 /**
- * Expose `Segment` integration.
+ * Expose `W3A` integration.
  */
 
-var Segment = exports = module.exports = integration('Segment.io')
-  .option('apiKey', '');
+var W3A = exports = module.exports = integration('W3A')
+  .option('api_key', '');
 
 /**
  * Get the store.
@@ -17952,7 +17957,7 @@ exports.global = window;
  * @api public
  */
 
-Segment.prototype.initialize = function() {
+W3A.prototype.initialize = function() {
   var self = this;
   this.ready();
   this.analytics.on('invoke', function(msg) {
@@ -17971,7 +17976,7 @@ Segment.prototype.initialize = function() {
  * @return {boolean}
  */
 
-Segment.prototype.loaded = function() {
+W3A.prototype.loaded = function() {
   return true;
 };
 
@@ -17982,7 +17987,7 @@ Segment.prototype.loaded = function() {
  * @param {Page} page
  */
 
-Segment.prototype.onpage = function(page) {
+W3A.prototype.onpage = function(page) {
   this.send('/p', page.json());
 };
 
@@ -17993,7 +17998,7 @@ Segment.prototype.onpage = function(page) {
  * @param {Identify} identify
  */
 
-Segment.prototype.onidentify = function(identify) {
+W3A.prototype.onidentify = function(identify) {
   this.send('/i', identify.json());
 };
 
@@ -18004,7 +18009,7 @@ Segment.prototype.onidentify = function(identify) {
  * @param {Group} group
  */
 
-Segment.prototype.ongroup = function(group) {
+W3A.prototype.ongroup = function(group) {
   this.send('/g', group.json());
 };
 
@@ -18017,7 +18022,7 @@ Segment.prototype.ongroup = function(group) {
  * @param {Track} track
  */
 
-Segment.prototype.ontrack = function(track) {
+W3A.prototype.ontrack = function(track) {
   var json = track.json();
   // TODO: figure out why we need traits.
   delete json.traits;
@@ -18031,7 +18036,7 @@ Segment.prototype.ontrack = function(track) {
  * @param {Alias} alias
  */
 
-Segment.prototype.onalias = function(alias) {
+W3A.prototype.onalias = function(alias) {
   var json = alias.json();
   var user = this.analytics.user();
   json.previousId = json.previousId || json.from || user.id() || user.anonymousId();
@@ -18048,7 +18053,7 @@ Segment.prototype.onalias = function(alias) {
  * @param {Object} msg
  */
 
-Segment.prototype.normalize = function(msg) {
+W3A.prototype.normalize = function(msg) {
   this.debug('normalize %o', msg);
   var user = this.analytics.user();
   var global = exports.global;
@@ -18077,9 +18082,10 @@ Segment.prototype.normalize = function(msg) {
  * @param {Function} fn
  */
 
-Segment.prototype.send = function(path, msg, fn) {
-  var url = scheme() + '//api.segment.io/v1' + path;
-  var headers = { 'Content-Type': 'text/plain' };
+W3A.prototype.send = function(path, msg, fn) {
+  // var url = scheme() + '//localhost:3000/' + path;
+  var url = scheme() + '//localhost:3000/api/v1/view_event';
+  var headers = { 'Content-Type': 'application/json' };
   fn = fn || noop;
   var self = this;
 
@@ -18103,8 +18109,8 @@ Segment.prototype.send = function(path, msg, fn) {
  * @param {*} val
  */
 
-Segment.prototype.cookie = function(name, val) {
-  var store = Segment.storage();
+W3A.prototype.cookie = function(name, val) {
+  var store = W3A.storage();
   if (arguments.length === 1) return store(name);
   var global = exports.global;
   var href = global.location.href;
@@ -18131,7 +18137,7 @@ Segment.prototype.cookie = function(name, val) {
  * @param {Object} ctx
  */
 
-Segment.prototype.referrerId = function(query, ctx) {
+W3A.prototype.referrerId = function(query, ctx) {
   var stored = this.cookie('s:context.referrer');
   var ad;
 
@@ -18863,7 +18869,7 @@ SnapEngage.prototype.attachListeners = function() {
   var self = this;
 
   // Callback is passed `email, message, type`
-  // TODO: Eventually this might pass information about the chat to Segment
+  // TODO: Eventually this might pass information about the chat to W3A
   window.SnapEngage.setCallback('StartChat', function() {
     self.analytics.track('Live Chat Conversation Started',
       {},
@@ -18871,7 +18877,7 @@ SnapEngage.prototype.attachListeners = function() {
   });
 
   // Callback is passed `agent, message`
-  // TODO: Eventually this might pass information about the message to Segment
+  // TODO: Eventually this might pass information about the message to W3A
   window.SnapEngage.setCallback('ChatMessageReceived', function(agent) {
     self.analytics.track('Live Chat Message Received',
       { agentUsername: agent },
@@ -18879,7 +18885,7 @@ SnapEngage.prototype.attachListeners = function() {
   });
 
   // Callback is passed `message`
-  // TODO: Eventually this might pass information about the message to Segment
+  // TODO: Eventually this might pass information about the message to W3A
   window.SnapEngage.setCallback('ChatMessageSent', function() {
     self.analytics.track('Live Chat Message Sent',
       {},
@@ -18887,7 +18893,7 @@ SnapEngage.prototype.attachListeners = function() {
   });
 
   // Callback is passed `type, status`
-  // TODO: Eventually this might pass information about the status to Segment
+  // TODO: Eventually this might pass information about the status to W3A
   window.SnapEngage.setCallback('Close', function() {
     self.analytics.track('Live Chat Conversation Ended',
       {},
